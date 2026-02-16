@@ -360,17 +360,17 @@ def write_strong_csv(workouts: list[dict], output_path: str):
         writer.writeheader()
         for workout in workouts_sorted:
             row = {
-                'Date': workout['Date'],
+                'Date': workout['Date'],  # Can add time like " 09:00:00" if needed
                 'Workout Name': workout['Workout Name'],
                 'Exercise Name': workout['Exercise Name'],
                 'Set Order': workout.get('Set Order', 1),
                 'Weight': workout.get('Weight', ''),
                 'Weight Unit': 'lbs',
                 'Reps': workout.get('Reps', ''),
-                'RPE': workout.get('RPE', ''),
+                'RPE': '',  # Empty like original
                 'Distance': '',
                 'Distance Unit': '',
-                'Seconds': '',
+                'Seconds': '0',  # Original uses 0
                 'Notes': workout.get('Notes', ''),
                 'Workout Notes': '',
                 'Workout Duration': ''
