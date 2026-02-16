@@ -37,19 +37,28 @@ cd strong-csv-migrator
 
 ## Usage
 
-### Basic Usage (single file)
+### Default Behavior (uses old_format/ directory)
+
+The script automatically processes CSV files from the `old_format/` directory:
 
 ```bash
-uv run migrator.py input.csv -s 2024-08-04 -o historical_workouts.csv
+uv run migrator.py -f "old_format/file1.csv,2024-08-24,PPL,0" -f "old_format/file2.csv,2025-07-06,ULPPL,0"
 ```
 
-### Multiple Files with Same Settings
-
-```bash
-uv run migrator.py file1.csv file2.csv -s 2024-08-04 -w "My Workout" -o output.csv
-```
+Format for `-f`: `filepath,start_date,workout_name,day_offset`
 
 ### Multiple Files with Different Start Dates
+
+Use `-f` for per-file configuration:
+
+```bash
+uv run migrator.py \
+  -f "old_format/file1.csv,2024-08-24,PPL,0" \
+  -f "old_format/file2.csv,2025-07-06,ULPPL,0" \
+  -o historical_workouts.csv
+```
+
+The script automatically looks for CSV files in the `old_format/` directory if no input files are specified.
 
 Use `-f` for per-file configuration:
 
@@ -82,10 +91,11 @@ uv run migrator.py input.csv -s 2024-08-04 -d 6 -o output.csv  # Sunday
 
 ```bash
 uv run migrator.py \
-  -f "../old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2024-08-24,PPL,0" \
-  -f "../old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2025-07-06,ULPPL,0" \
-  -o historical_workouts.csv
+  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2024-08-24,PPL,0" \
+  -f "old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2025-07-06,ULPPL,0"
 ```
+
+Output: `historical_workouts.csv`
 
 ### Date Calculation
 

@@ -371,7 +371,7 @@ def main():
     parser.add_argument(
         'input_files',
         nargs='*',
-        help='Input CSV files to process (can use glob patterns)'
+        help='Input CSV files to process. Defaults to all CSV files in old_format/ if not specified'
     )
     parser.add_argument(
         '-o', '--output',
@@ -400,6 +400,16 @@ def main():
     )
     
     args = parser.parse_args()
+    
+    # If no input files specified, look for CSVs in old_format/ directory
+    if not args.input_files and not args.file_config:
+        old_format_dir = Path('old_format')
+        if old_format_dir.exists():
+            args.input_files = [str(f) for f in sorted(old_format_dir.glob('*.csv'))]
+            print(f"Found {len(args.input_files)} CSV files in old_format/")
+        else:
+            print("Error: No input files specified and old_format/ directory not found")
+            return
     
     # Handle per-file configs
     if args.file_config:
