@@ -138,6 +138,7 @@ def parse_health_tracking_csv(
             if sets is None or sets == 0:
                 continue
             
+            # In data rows, "Week X" is at col_idx - 1, so data starts at col_idx
             reps_idx = col_idx + 1
             weight_idx = col_idx + 2
             completed_idx = col_idx + 3
@@ -172,6 +173,9 @@ def parse_health_tracking_csv(
             
             if notes_idx < len(row):
                 notes = row[notes_idx].strip()
+                # Filter out completion markers - these were just markers, not actual notes
+                if notes.upper() in ('YES', 'NO'):
+                    notes = ''
             
             if reps is None or reps == 0:
                 continue
@@ -273,6 +277,7 @@ def parse_ppl_csv(
             if sets is None or sets == 0:
                 continue
             
+            # In data rows, "Week X" is at col_idx - 1, so data starts at col_idx
             reps_idx = col_idx + 1
             weight_idx = col_idx + 2
             completed_idx = col_idx + 3
@@ -307,6 +312,9 @@ def parse_ppl_csv(
             
             if notes_idx < len(row):
                 notes = row[notes_idx].strip()
+                # Filter out completion markers - these were just markers, not actual notes
+                if notes.upper() in ('YES', 'NO'):
+                    notes = ''
             
             if reps is None or reps == 0:
                 continue
