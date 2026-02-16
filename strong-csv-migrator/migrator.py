@@ -212,6 +212,7 @@ def parse_health_tracking_csv(
             # Data columns after "Week X" are: Reps, Weight, Completed, Notes
             reps_idx = col_idx + 1
             weight_idx = col_idx + 2
+            completed_idx = col_idx + 3
             notes_idx = col_idx + 4
             
             # Parse reps
@@ -226,6 +227,12 @@ def parse_health_tracking_csv(
             
             if not reps:
                 continue
+            
+            # Check if exercise was completed (TRUE in completed column)
+            if completed_idx < len(row):
+                completed_val = row[completed_idx].strip().upper()
+                if completed_val != 'TRUE':
+                    continue
             
             # Parse weight
             weight = 0
@@ -350,15 +357,16 @@ def merge_csv_files(file_configs: list[dict], output_path: str):
         
         if workout_name == "ULPPL":
             # ULPPL: 7-day cycle: Upper(0), Lower(1), Rest(2), Push(3), Pull(4), Legs(5), Rest(6)
-            # End date = Upper (last Upper in the program)
-            # Within each week, Upper comes first, so it needs the largest offset
+            # End date = Upper (last Upper in the program = Feb 13)
+            # Upper is day 0, so offset 0 means it lands on end_date
+            # Other workouts have negative offsets to come AFTER Upper chronologically
             cycle_days = 7
             workout_days = [
-                (6, "Upper"),  # Upper is day 0 of cycle = 6 days back within week
-                (5, "Lower"),  # Lower is day 1 of cycle = 5 days back within week
-                (3, "Push"),   # Push is day 3 of cycle = 3 days back within week
-                (2, "Pull"),   # Pull is day 4 of cycle = 2 days back within week
-                (1, "Legs"),   # Legs is day 5 of cycle = 1 day back within week
+                (0, "Upper"),   # Upper is day 0: end_date (Feb 13)
+                (-1, "Lower"),  # Lower is day 1: 1 day after Upper
+                (-3, "Push"),   # Push is day 3: 3 days after Upper  
+                (-4, "Pull"),   # Pull is day 4: 4 days after Upper
+                (-5, "Legs"),   # Legs is day 5: 5 days after Upper
             ]
         else:  # PPL
             # PPL: 8-day cycle: Push A, Pull A, Legs A, Rest, Push B, Pull B, Legs B, Rest
