@@ -58,7 +58,7 @@ No additional dependencies required. Uses Python standard library.
 
 ```bash
 uv run migrator.py \
-  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2025-07-05,PPL" \
+  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2025-07-17,PPL" \
   -f "old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2026-02-13,ULPPL"
 ```
 
@@ -71,10 +71,13 @@ uv run migrator.py \
 
 Edit the `EXERCISE_NAME_MAP` dictionary in `migrator.py` to map your exercise names to Hevy-compatible names. This prevents "Custom" exercises from being created.
 
+The map is organized by Hevy exercise name with an array of source name variations:
+
 ```python
 EXERCISE_NAME_MAP = {
-    "Cable Lateral Raise": "Single Arm Lateral Raise (Cable)",
-    "DB Flat Bench": "Dumbbell Bench Press",
+    "Hammer Curl (Dumbbell)": ["Hammer Curl", "Seated Hammer Curl"],
+    "Triceps Rope Pushdown": ["Tricep Pushdown", "Tricep Pushdowns", "Tricep Rope Extension"],
+    "Seated Leg Curl (Machine)": ["Leg Curl", "Seated Leg Curl"],
     # Add your mappings here...
 }
 ```
@@ -87,21 +90,22 @@ The script calculates dates **working backwards from the end date**, not forward
 - Filenames can be misleading or contain typos
 - The actual logged data may not match the filename date range
 
-**PPL (Push, Pull, Legs):** 8-day cycle: Push, Pull, Legs, Rest, Push, Pull, Legs, Rest
+**PPL (Push, Pull, Legs):** 8-day cycle: Push A, Pull A, Legs A, Rest, Push B, Pull B, Legs B, Rest
 
 **ULPPL (Upper, Lower, Push, Pull, Legs):** 7-day cycle: Upper, Lower, Rest, Push, Pull, Legs, Rest
 
-The date, Legs, is calculated as:
+Dates are calculated by working backwards from the end date:
 
 ```
-date = end_date - ((week_number - 1) * cycle_days + workout_day_index)
+days_back = (total_weeks - week_number) * cycle_days + workout_day_offset
+workout_date = end_date - days_back
 ```
 
-For example, with PPL ending on 2025-07-05 (Saturday):
-- Week 23, Legs (day 2) = 2025-07-05
-- Week 23, Pull (day 1) = 2025-07-04
-- Week 22, Legs (day 2) = 2025-06-27
-- Week 1, Push (day 0) = working backwards ~23 weeks
+For example, with PPL ending on 2025-07-05 (Legs B):
+- Week 23, Legs B (0 days back) = 2025-07-05
+- Week 23, Pull B (1 day back) = 2025-07-04
+- Week 23, Push B (2 days back) = 2025-07-03
+- Week 22, Legs B (8 days back) = 2025-06-27
 
 ## Input Format
 
@@ -124,17 +128,17 @@ The tool expects CSV files organized by weeks (like Google Sheets exports), wher
 ## Processing Logic
 
 1. **Parse headers**: Identify week columns from the header row
-2. **Track workout context**: Detect day names (Day 1, Day 2, Push, Pull, Legs, etc.)
+2. **Track workout context**: Detect day names (Day 1, Upper, Lower, Push A, Pull B, etc.)
 3. **Extract sets**: For each week/exercise combination, create individual set entries
 4. **Calculate dates**: Use the provided **end_date** and work backwards through the cycle
-5. **Filter completed**: Only include sets marked as TRUE
+5. **Include all exercises**: Process all exercises with valid data (sets, reps)
 6. **Apply exercise mapping**: Map exercise names to Hevy-compatible names
 7. **Merge & sort**: Combine all files and sort by date
 
 ## Notes
 
-- Only sets marked as "TRUE" (completed) are included
-- "Yes" and "No" markers in the Notes column are filtered out (they were just completion markers)
+- All exercises with valid data (sets and reps) are included in the output
+- "Yes" and "No" markers in the Notes column are filtered out (completion markers only)
 - Actual exercise notes are preserved
 - Setup columns are automatically skipped
 - Default workout time: 5:30 PM (17:30)
