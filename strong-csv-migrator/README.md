@@ -58,15 +58,14 @@ No additional dependencies required. Uses Python standard library.
 
 ```bash
 uv run migrator.py \
-  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2024-08-24,PPL,0" \
-  -f "old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2025-07-06,ULPPL,0"
+  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2025-07-05,PPL" \
+  -f "old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2026-02-13,ULPPL"
 ```
 
 ### Command Options
 
-- `-f "filepath,start_date,workout_name,day_offset"` - Per-file configuration (can specify multiple)
+- `-f "filepath,end_date,workout_name"` - Per-file configuration (can specify multiple)
 - `-o output.csv` - Output file (default: `historical_workouts.csv`)
-- `-d 0-6` - Day offset (0=Monday, 6=Sunday)
 
 ### Exercise Name Mapping
 
@@ -82,16 +81,27 @@ EXERCISE_NAME_MAP = {
 
 ### Date Calculation
 
-The script calculates workout dates using:
+The script calculates dates **working backwards from the end date**, not forwards from start date. This is more reliable because:
+
+- The end date is explicitly provided (e.g., the last workout in the file)
+- Filenames can be misleading or contain typos
+- The actual logged data may not match the filename date range
+
+**PPL (Push, Pull, Legs):** 8-day cycle: Push, Pull, Legs, Rest, Push, Pull, Legs, Rest
+
+**ULPPL (Upper, Lower, Push, Pull, Legs):** 7-day cycle: Upper, Lower, Rest, Push, Pull, Legs, Rest
+
+The date, Legs, is calculated as:
 
 ```
-date = start_date + (week_number - 1) * 7 + day_offset
+date = end_date - ((week_number - 1) * cycle_days + workout_day_index)
 ```
 
-For example, if Week 1 starts on 2024-08-24 (Saturday):
-- Week 1, Saturday = 2024-08-24
-- Week 2, Saturday = 2024-08-31
-- Week 3, Saturday = 2024-09-07
+For example, with PPL ending on 2025-07-05 (Saturday):
+- Week 23, Legs (day 2) = 2025-07-05
+- Week 23, Pull (day 1) = 2025-07-04
+- Week 22, Legs (day 2) = 2025-06-27
+- Week 1, Push (day 0) = working backwards ~23 weeks
 
 ## Input Format
 
@@ -116,7 +126,7 @@ The tool expects CSV files organized by weeks (like Google Sheets exports), wher
 1. **Parse headers**: Identify week columns from the header row
 2. **Track workout context**: Detect day names (Day 1, Day 2, Push, Pull, Legs, etc.)
 3. **Extract sets**: For each week/exercise combination, create individual set entries
-4. **Calculate dates**: Use the provided start date and week number
+4. **Calculate dates**: Use the provided **end_date** and work backwards through the cycle
 5. **Filter completed**: Only include sets marked as TRUE
 6. **Apply exercise mapping**: Map exercise names to Hevy-compatible names
 7. **Merge & sort**: Combine all files and sort by date
