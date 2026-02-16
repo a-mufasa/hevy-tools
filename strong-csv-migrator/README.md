@@ -29,23 +29,38 @@ Date,Workout Name,Exercise Name,Weight,Reps,RPE,Notes
 
 ## Installation
 
+No dependencies required. Uses Python standard library.
+
 ```bash
-pip install -r requirements.txt
+cd strong-csv-migrator
 ```
 
 ## Usage
 
-### Basic Usage
+### Basic Usage (single file)
 
 ```bash
-python migrator.py input.csv -s 2024-08-04 -o historical_workouts.csv
+uv run migrator.py input.csv -s 2024-08-04 -o historical_workouts.csv
 ```
 
-### With Custom Workout Name
+### Multiple Files with Same Settings
 
 ```bash
-python migrator.py input.csv -s 2024-08-04 -w "My Workout" -o output.csv
+uv run migrator.py file1.csv file2.csv -s 2024-08-04 -w "My Workout" -o output.csv
 ```
+
+### Multiple Files with Different Start Dates
+
+Use `-f` for per-file configuration:
+
+```bash
+uv run migrator.py \
+  -f "file1.csv,2024-08-24,PPL,0" \
+  -f "file2.csv,2025-07-06,ULPPL,0" \
+  -o historical_workouts.csv
+```
+
+Format: `filepath,start_date,workout_name,day_offset`
 
 ### Specify Day of Week
 
@@ -60,16 +75,17 @@ By default, workouts are scheduled on Monday (day_offset=0). You can change this
 - `6` = Sunday
 
 ```bash
-python migrator.py input.csv -s 2024-08-04 -d 6 -o output.csv  # Sunday
+uv run migrator.py input.csv -s 2024-08-04 -d 6 -o output.csv  # Sunday
 ```
 
-### Multiple Files
+## Example
 
 ```bash
-python migrator.py file1.csv file2.csv -s 2024-08-04 -o historical_workouts.csv
+uv run migrator.py \
+  -f "../old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2024-08-24,PPL,0" \
+  -f "../old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2025-07-06,ULPPL,0" \
+  -o historical_workouts.csv
 ```
-
-## How It Works
 
 ### Date Calculation
 
@@ -108,23 +124,9 @@ The tool expects CSV files organized by weeks, where:
 4. Select "Import from Strong"
 5. Upload the generated CSV file
 
-## Example
-
-Given input file `health_tracking.csv` with Week 1 starting 2024-08-04:
-
-```bash
-python migrator.py ../old_format/*.csv -s 2024-08-04 -w "PPL" -d 0 -o historical_workouts.csv
-```
-
-This will:
-1. Process all CSV files in the `old_format` directory
-2. Week 1 dates starting from 2024-08-04 (Monday)
-3. Name workouts as "PPL - Day X"
-4. Output to `historical_workouts.csv`
-
 ## Notes
 
 - Only sets marked as "TRUE" (completed) are included
 - Sets with 0 reps or empty weight are included (for bodyweight exercises)
-- The script assumes each set in the input represents one set; if your CSV shows total sets, each set gets replicated
+- Setup columns are automatically skipped
 - RPE is left empty by default (can be manually added later in Hevy)

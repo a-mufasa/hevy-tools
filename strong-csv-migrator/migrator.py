@@ -93,7 +93,11 @@ def parse_health_tracking_csv(
     
     week_columns = {}
     for idx, cell in enumerate(header_row):
-        week_num = parse_week_number(str(cell))
+        cell_str = str(cell).strip()
+        # Skip Setup columns - only process Week X columns
+        if 'Setup' in cell_str:
+            continue
+        week_num = parse_week_number(cell_str)
         if week_num:
             week_columns[week_num] = idx
     
@@ -161,13 +165,12 @@ def parse_health_tracking_csv(
             
             if completed_idx < len(row):
                 completed_val = row[completed_idx].strip().upper()
-                completed = completed_val == 'TRUE'
+                # Only include if TRUE - exclude FALSE entries
+                if completed_val != 'TRUE':
+                    continue
             
             if notes_idx < len(row):
                 notes = row[notes_idx].strip()
-            
-            if not completed:
-                continue
             
             if reps is None or reps == 0:
                 continue
@@ -215,12 +218,12 @@ def parse_ppl_csv(
     week_map = {}
     for idx, cell in enumerate(header_row):
         cell_str = str(cell).strip()
+        # Skip Setup columns - only process Week X columns
         if 'Setup' in cell_str:
-            week_map[0] = idx
-        else:
-            week_num = parse_week_number(cell_str)
-            if week_num:
-                week_map[week_num] = idx
+            continue
+        week_num = parse_week_number(cell_str)
+        if week_num:
+            week_map[week_num] = idx
     
     current_day = None
     current_exercise = None
@@ -287,13 +290,12 @@ def parse_ppl_csv(
             
             if completed_idx < len(row):
                 completed_val = row[completed_idx].strip().upper()
-                completed = completed_val == 'TRUE'
+                # Only include if TRUE - exclude FALSE entries
+                if completed_val != 'TRUE':
+                    continue
             
             if notes_idx < len(row):
                 notes = row[notes_idx].strip()
-            
-            if not completed:
-                continue
             
             if reps is None or reps == 0:
                 continue
@@ -368,8 +370,8 @@ def main():
     )
     parser.add_argument(
         'input_files',
-        nargs='+',
-        help='Input CSV files to process'
+        nargs='*',
+        help='Input CSV files to process (can use glob patterns)'
     )
     parser.add_argument(
         '-o', '--output',
@@ -378,8 +380,7 @@ def main():
     )
     parser.add_argument(
         '-s', '--start-date',
-        required=True,
-        help='Start date for Week 1 (YYYY-MM-DD)'
+        help='Start date for Week 1 (YYYY-MM-DD). Applied to all files unless using --file-config'
     )
     parser.add_argument(
         '-w', '--workout-name',
@@ -392,19 +393,48 @@ def main():
         default=0,
         help='Day of week for workouts: 0=Mon, 1=Tue, ..., 6=Sun (default: 0)'
     )
+    parser.add_argument(
+        '-f', '--file-config',
+        action='append',
+        help='Per-file config in format: filepath,start_date,workout_name,day_offset'
+    )
     
     args = parser.parse_args()
     
-    start_date = datetime.strptime(args.start_date, '%Y-%m-%d')
-    
-    file_configs = []
-    for filepath in args.input_files:
-        file_configs.append({
-            'filepath': filepath,
-            'start_date': start_date,
-            'workout_name': args.workout_name,
-            'day_offset': args.day_offset
-        })
+    # Handle per-file configs
+    if args.file_config:
+        file_configs = []
+        for config_str in args.file_config:
+            parts = config_str.split(',')
+            if len(parts) < 2:
+                print(f"Error: Invalid file config format: {config_str}")
+                print("Expected: filepath,start_date[,workout_name[,day_offset]]")
+                return
+            filepath = parts[0]
+            start_date = datetime.strptime(parts[1], '%Y-%m-%d')
+            workout_name = parts[2] if len(parts) > 2 else args.workout_name
+            day_offset = int(parts[3]) if len(parts) > 3 else args.day_offset
+            file_configs.append({
+                'filepath': filepath,
+                'start_date': start_date,
+                'workout_name': workout_name,
+                'day_offset': day_offset
+            })
+    else:
+        # Use global args for all files
+        if not args.start_date:
+            print("Error: --start-date is required unless using --file-config")
+            return
+        
+        start_date = datetime.strptime(args.start_date, '%Y-%m-%d')
+        file_configs = []
+        for filepath in args.input_files:
+            file_configs.append({
+                'filepath': filepath,
+                'start_date': start_date,
+                'workout_name': args.workout_name,
+                'day_offset': args.day_offset
+            })
     
     merge_csv_files(file_configs, args.output)
 

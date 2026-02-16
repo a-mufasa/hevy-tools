@@ -1,0 +1,10 @@
+[project]
+name = "strong-csv-migrator"
+version = "0.1.0"
+description = "Convert workout tracking spreadsheets to Strong CSV format for Hevy import"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv]
+managed = false
