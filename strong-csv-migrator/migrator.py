@@ -326,14 +326,16 @@ def merge_csv_files(file_configs: list[dict], output_path: str):
         # For PPL: 8-day cycle: Push A(0), Pull A(1), Legs A(2), Rest(3), Push B(4), Pull B(5), Legs B(6), Rest(7)
         # For ULPPL: 7-day cycle: Upper(0), Lower(1), Rest(2), Push(3), Pull(4), Legs(5), Rest(6)
         if workout_name == "ULPPL":
-            # End date = day 0 (Upper), so Upper is the last workout
+            # End date = day 0 (Upper), working backwards in cycle
+            # Cycle: Upper(0), Lower(1), Rest(2), Push(3), Pull(4), Legs(5), Rest(6)
+            # To calculate days_back from end_date: 7 - cycle_position for non-zero
             cycle_days = 7
             workout_days = [
-                (0, "Upper"),     # Upper = day 0 (end_date)
-                (1, "Lower"),     # Lower = day 1
-                (3, "Push"),      # Push = day 3
-                (4, "Pull"),      # Pull = day 4
-                (5, "Legs"),      # Legs = day 5
+                (0, "Upper"),     # Upper = day 0: 0 days back
+                (6, "Lower"),     # Lower = day 1: 7-1=6 days back
+                (4, "Push"),      # Push = day 3: 7-3=4 days back
+                (3, "Pull"),      # Pull = day 4: 7-4=3 days back
+                (2, "Legs"),      # Legs = day 5: 7-5=2 days back
             ]
         else:
             # PPL: End date = day 6 (Legs B), so index = 6 means end_date itself
