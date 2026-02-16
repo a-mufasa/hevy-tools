@@ -24,6 +24,55 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
+# Exercise name mapping - map your exercises to Hevy-compatible names
+# Edit this dictionary to map your exercise names to Hevy's exercise names
+# This prevents "Custom" exercises from being created
+EXERCISE_NAME_MAP = {
+    "Abductor (Outer)": "Abductor (Outer)",
+    "Adductor (Inner)": "Adductor (Inner)",
+    "Cable Fly": "Cable Fly",
+    "Cable Lateral Raise": "Cable Lateral Raise",
+    "Cable Pullover": "Cable Pullover",
+    "Calf Raise": "Calf Raise",
+    "Calf Raises": "Calf Raises",
+    "Chest Fly": "Chest Fly",
+    "Close Grip Pull-up": "Close Grip Pull-up",
+    "DB Flat Bench": "DB Flat Bench",
+    "DB Incline Bench": "DB Incline Bench",
+    "DB Lateral Raise": "DB Lateral Raise",
+    "DB Overhead Press": "DB Overhead Press",
+    "DB Preacher Curl": "DB Preacher Curl",
+    "DB RDL": "DB RDL",
+    "DB Row": "DB Row",
+    "Dead Bugs": "Dead Bugs",
+    "Face Pull": "Face Pull",
+    "Flat Bench Press": "Flat Bench Press",
+    "Hammer Curl": "Hammer Curl",
+    "Incline Cable Fly": "Incline Cable Fly",
+    "Incline Smith Bench Press": "Incline Smith Bench Press",
+    "Lat Pulldown": "Lat Pulldown",
+    "Lateral Raise": "Lateral Raise",
+    "Leg Curl": "Leg Curl",
+    "Leg Extension": "Leg Extension",
+    "Leg Press": "Leg Press",
+    "Lunges": "Lunges",
+    "Preacher Curl": "Preacher Curl",
+    "Rear Delt": "Rear Delt",
+    "Row": "Row",
+    "SLDL": "SLDL",
+    "Seated Hammer Curl": "Seated Hammer Curl",
+    "Seated Leg Curl": "Seated Leg Curl",
+    "Shoulder Press": "Shoulder Press",
+    "Single Arm Seated Row": "Single Arm Seated Row",
+    "Single Arm Tricep Extension": "Single Arm Tricep Extension",
+    "Smith Squat": "Smith Squat",
+    "Tricep Pushdown": "Tricep Pushdown",
+    "Tricep Pushdowns": "Tricep Pushdowns",
+    "Tricep Rope Extension": "Tricep Rope Extension",
+    "Weighted Dip": "Weighted Dip",
+    "Wide Grip Pull-up": "Wide Grip Pull-up",
+}
+
 
 def calculate_date_for_week(
     week_number: int,
@@ -191,8 +240,10 @@ def parse_health_tracking_csv(
             
             for set_num in range(sets):
                 current_set_order += 1
+                # Add default time to date (like original Strong export)
+                date_with_time = date_key + " 10:00:00"
                 workouts.append({
-                    'Date': date_key,
+                    'Date': date_with_time,
                     'Workout Name': full_workout_name,
                     'Exercise Name': exercise_name,
                     'Set Order': current_set_order,
@@ -331,8 +382,10 @@ def parse_ppl_csv(
             
             for set_num in range(sets):
                 current_set_order += 1
+                # Add default time to date (like original Strong export)
+                date_with_time = date_key + " 10:00:00"
                 workouts.append({
-                    'Date': date_key,
+                    'Date': date_with_time,
                     'Workout Name': full_workout_name,
                     'Exercise Name': exercise_name,
                     'Set Order': current_set_order,
@@ -359,21 +412,24 @@ def write_strong_csv(workouts: list[dict], output_path: str):
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=';')
         writer.writeheader()
         for workout in workouts_sorted:
+            exercise_name = workout.get('Exercise Name', '')
+            mapped_name = EXERCISE_NAME_MAP.get(exercise_name, exercise_name)
+            
             row = {
-                'Date': workout['Date'],  # Can add time like " 09:00:00" if needed
+                'Date': workout['Date'],
                 'Workout Name': workout['Workout Name'],
-                'Exercise Name': workout['Exercise Name'],
+                'Exercise Name': mapped_name,
                 'Set Order': workout.get('Set Order', 1),
                 'Weight': workout.get('Weight', ''),
                 'Weight Unit': 'lbs',
                 'Reps': workout.get('Reps', ''),
-                'RPE': '',  # Empty like original
+                'RPE': '',
                 'Distance': '',
                 'Distance Unit': '',
-                'Seconds': '0',  # Original uses 0
-                'Notes': workout.get('Notes', ''),
-                'Workout Notes': '',
-                'Workout Duration': ''
+                'Seconds': '0',
+                'Notes': workout.get('Notes') or '-',  # Must have a value (not empty)
+                'Workout Notes': '-',  # Must have a value (not empty)
+                'Workout Duration': '30m'
             }
             writer.writerow(row)
 
