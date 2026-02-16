@@ -227,10 +227,11 @@ def parse_health_tracking_csv(
                     except ValueError:
                         weight = None
             
-            if completed_idx < len(row):
-                completed_val = row[completed_idx].strip().upper()
-                if completed_val != 'TRUE':
-                    continue
+            # REMOVED: Don't filter by TRUE/FALSE - include all exercises with data
+            # if completed_idx < len(row):
+            #     completed_val = row[completed_idx].strip().upper()
+            #     if completed_val != 'TRUE':
+            #         continue
             
             if notes_idx < len(row):
                 notes = row[notes_idx].strip()
