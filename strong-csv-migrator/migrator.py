@@ -78,23 +78,25 @@ def calculate_date_backwards(
     week_number: int,
     workout_day_index: int,
     end_date: datetime,
-    cycle_days: int
+    cycle_days: int,
+    total_weeks: int
 ) -> datetime:
     """
     Calculate date working backwards from end_date.
     
     Args:
-        week_number: The week number (1-indexed)
+        week_number: The week number (1-indexed, from spreadsheet)
         workout_day_index: Index of this workout within the cycle (0=first)
-        end_date: The end date (last workout)
+        end_date: The end date (last workout date)
         cycle_days: Days in one complete cycle (8 for PPL, 7 for ULPPL)
-    
+        total_weeks: Total number of weeks in the spreadsheet
     Returns:
         The calculated date
     """
-    # Week 1 starts cycle_days * (week_number - 1) days before end_date
-    # Then add workout_day_index to get to the specific workout day
-    days_back = (week_number - 1) * cycle_days + workout_day_index
+    # Week max_week_number maps to end_date
+    # Week 1 is the earliest, furthest back
+    # days_back = (max_week_number - week_number) * cycle_days + workout_day_index
+    days_back = (total_weeks - week_number) * cycle_days + workout_day_index
     return end_date - timedelta(days=days_back)
 
 
@@ -103,7 +105,8 @@ def parse_health_tracking_csv(
     end_date: datetime,
     workout_name_prefix: str = "Workout",
     cycle_days: int = 8,
-    workout_days_in_cycle: list = None
+    workout_days_in_cycle: list = None,
+    total_weeks: int = None
 ) -> list[dict]:
     """
     Parse a health tracking CSV file organized by weeks.
@@ -114,6 +117,7 @@ def parse_health_tracking_csv(
         workout_name_prefix: Base name for workouts (e.g., "PPL", "ULPPL")
         cycle_days: Days in one complete cycle (8 for PPL, 7 for ULPPL)
         workout_days_in_cycle: List of (day_index, workout_name) for each workout day
+        total_weeks: Total number of weeks in the spreadsheet (auto-detected if not provided)
     
     Returns:
         List of workout entries in Strong CSV format
@@ -133,6 +137,10 @@ def parse_health_tracking_csv(
     
     header_row = rows[0]
     week_columns = get_week_number_for_columns(header_row)
+    
+    # Auto-detect total_weeks if not provided
+    if total_weeks is None:
+        total_weeks = max(week_columns.keys()) if week_columns else 0
     
     current_day = None
     for row_idx, row in enumerate(rows[2:], start=2):
@@ -237,7 +245,8 @@ def parse_health_tracking_csv(
                 week_num,
                 workout_day_index,
                 end_date,
-                cycle_days
+                cycle_days,
+                total_weeks
             )
             
             full_workout_name = f"{workout_name_prefix} - {workout_base}"
@@ -316,14 +325,14 @@ def merge_csv_files(file_configs: list[dict], output_path: str):
         # For PPL: 8-day cycle: Push A(0), Pull A(1), Legs A(2), Rest(3), Push B(4), Pull B(5), Legs B(6), Rest(7)
         # For ULPPL: 7-day cycle: Upper(0), Lower(1), Rest(2), Push(3), Pull(4), Legs(5), Rest(6)
         if workout_name == "ULPPL":
-            # End date = day 5 (Legs), so index = 5 means end_date itself
+            # End date = day 0 (Upper), so Upper is the last workout
             cycle_days = 7
             workout_days = [
-                (5 - 0, "Upper"),    # Upper = day 5 (end_date)
-                (5 - 1, "Lower"),    # Lower = day 4
-                (5 - 3, "Push"),     # Push = day 2
-                (5 - 4, "Pull"),     # Pull = day 1
-                (5 - 5, "Legs"),     # Legs = day 0
+                (0, "Upper"),     # Upper = day 0 (end_date)
+                (1, "Lower"),     # Lower = day 1
+                (3, "Push"),      # Push = day 3
+                (4, "Pull"),      # Pull = day 4
+                (5, "Legs"),      # Legs = day 5
             ]
         else:
             # PPL: End date = day 6 (Legs B), so index = 6 means end_date itself
