@@ -58,7 +58,7 @@ No additional dependencies required. Uses Python standard library.
 
 ```bash
 uv run migrator.py \
-  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2025-07-17,PPL" \
+  -f "old_format/Health Tracking (8_24_24 - 7_5_25) - PPL 8_24_24 - 7_5_25.csv,2025-07-23,PPL" \
   -f "old_format/Health Tracking (7_6_25 - 2_13_26) - ULPPL 7_6_25 - 2_13_26.csv,2026-02-13,ULPPL"
 ```
 
