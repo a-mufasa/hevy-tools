@@ -28,49 +28,49 @@ from typing import Optional
 # Edit this dictionary to map your exercise names to Hevy's exercise names
 # This prevents "Custom" exercises from being created
 EXERCISE_NAME_MAP = {
-    "Abductor (Outer)": "Abductor (Outer)",
-    "Adductor (Inner)": "Adductor (Inner)",
-    "Cable Fly": "Cable Fly",
-    "Cable Lateral Raise": "Cable Lateral Raise",
-    "Cable Pullover": "Cable Pullover",
-    "Calf Raise": "Calf Raise",
-    "Calf Raises": "Calf Raises",
-    "Chest Fly": "Chest Fly",
-    "Close Grip Pull-up": "Close Grip Pull-up",
-    "DB Flat Bench": "DB Flat Bench",
-    "DB Incline Bench": "DB Incline Bench",
-    "DB Lateral Raise": "DB Lateral Raise",
-    "DB Overhead Press": "DB Overhead Press",
-    "DB Preacher Curl": "DB Preacher Curl",
-    "DB RDL": "DB RDL",
-    "DB Row": "DB Row",
-    "Dead Bugs": "Dead Bugs",
+    "Abductor (Outer)": "Hip Abduction (Machine)",
+    "Adductor (Inner)": "Hip Adduction (Machine)",
+    "Cable Fly": "Seated Chest Flys (Cable)",
+    "Cable Lateral Raise": "Single Arm Lateral Raise (Cable)",
+    "Cable Pullover": "Rope Straight Arm Pulldown",
+    "Calf Raise": "Calf Press (Machine)",
+    "Calf Raises": "Calf Press (Machine)",
+    "Chest Fly": "Chest Fly (Machine)",
+    "Close Grip Pull-up": "Pull Up",
+    "DB Flat Bench": "Bench Press (Dumbbell)",
+    "DB Incline Bench": "Incline Bench Press (Dumbbell)",
+    "DB Lateral Raise": "Lateral Raise (Dumbbell)",
+    "DB Overhead Press": "Seated Overhead Press (Dumbbell)",
+    "DB Preacher Curl": "Preacher Curl (Dumbbell)",
+    "DB RDL": "Romanian Deadlift (Dumbbell)",
+    "DB Row": "Dumbbell Row",
+    "Dead Bugs": "Dead Bug",
     "Face Pull": "Face Pull",
-    "Flat Bench Press": "Flat Bench Press",
-    "Hammer Curl": "Hammer Curl",
-    "Incline Cable Fly": "Incline Cable Fly",
-    "Incline Smith Bench Press": "Incline Smith Bench Press",
-    "Lat Pulldown": "Lat Pulldown",
-    "Lateral Raise": "Lateral Raise",
-    "Leg Curl": "Leg Curl",
-    "Leg Extension": "Leg Extension",
-    "Leg Press": "Leg Press",
-    "Lunges": "Lunges",
-    "Preacher Curl": "Preacher Curl",
-    "Rear Delt": "Rear Delt",
-    "Row": "Row",
-    "SLDL": "SLDL",
-    "Seated Hammer Curl": "Seated Hammer Curl",
-    "Seated Leg Curl": "Seated Leg Curl",
-    "Shoulder Press": "Shoulder Press",
-    "Single Arm Seated Row": "Single Arm Seated Row",
-    "Single Arm Tricep Extension": "Single Arm Tricep Extension",
-    "Smith Squat": "Smith Squat",
-    "Tricep Pushdown": "Tricep Pushdown",
-    "Tricep Pushdowns": "Tricep Pushdowns",
-    "Tricep Rope Extension": "Tricep Rope Extension",
-    "Weighted Dip": "Weighted Dip",
-    "Wide Grip Pull-up": "Wide Grip Pull-up",
+    "Flat Bench Press": "Bench Press (Barbell)",
+    "Hammer Curl": "Hammer Curl (Dumbbell)",
+    "Incline Cable Fly": "Low Cable Fly Crossovers",
+    "Incline Smith Bench Press": "Incline Bench Press (Smith Machine)",
+    "Lat Pulldown": "Lat Pulldown (Cable)",
+    "Lateral Raise": "Lateral Raise (Dumbbell)",
+    "Leg Curl": "Seated Leg Curl (Machine)",
+    "Leg Extension": "Leg Extension (Machine)",
+    "Leg Press": "Leg Press Horizontal (Machine)",
+    "Lunges": "Lunge (Dumbbell)",
+    "Preacher Curl": "Preacher Curl (Dumbbell)",
+    "Rear Delt": "Face Pull",
+    "Row": "Seated Row (Machine)",
+    "SLDL": "Straight Leg Deadlift",
+    "Seated Hammer Curl": "Hammer Curl (Dumbbell)",
+    "Seated Leg Curl": "Seated Leg Curl (Machine)",
+    "Shoulder Press": "Seated Shoulder Press (Machine)",
+    "Single Arm Seated Row": "Single Arm Cable Row",
+    "Single Arm Tricep Extension": "Single Arm Triceps Pushdown (Cable)",
+    "Smith Squat": "Squat (Smith Machine)",
+    "Tricep Pushdown": "Triceps Rope Pushdown",
+    "Tricep Pushdowns": "Triceps Rope Pushdown",
+    "Tricep Rope Extension": "Triceps Rope Pushdown",
+    "Weighted Dip": "Chest Dip (Weighted)",
+    "Wide Grip Pull-up": "Wide Pull Up",
 }
 
 
@@ -241,7 +241,7 @@ def parse_health_tracking_csv(
             for set_num in range(sets):
                 current_set_order += 1
                 # Add default time to date (like original Strong export)
-                date_with_time = date_key + " 10:00:00"
+                date_with_time = date_key + " 17:30:00"
                 workouts.append({
                     'Date': date_with_time,
                     'Workout Name': full_workout_name,
@@ -383,7 +383,7 @@ def parse_ppl_csv(
             for set_num in range(sets):
                 current_set_order += 1
                 # Add default time to date (like original Strong export)
-                date_with_time = date_key + " 10:00:00"
+                date_with_time = date_key + " 17:30:00"
                 workouts.append({
                     'Date': date_with_time,
                     'Workout Name': full_workout_name,
@@ -429,7 +429,7 @@ def write_strong_csv(workouts: list[dict], output_path: str):
                 'Seconds': '0',
                 'Notes': workout.get('Notes') or '-',  # Must have a value (not empty)
                 'Workout Notes': '-',  # Must have a value (not empty)
-                'Workout Duration': '30m'
+                'Workout Duration': '1h'
             }
             writer.writerow(row)
 
