@@ -168,7 +168,7 @@ def parse_health_tracking_csv(
         workout_day_index = None
         
         for wd_index, wd_name in workout_days_in_cycle:
-            if current_day == wd_name or current_day.startswith(wd_name + " "):
+            if current_day == wd_name or wd_name in current_day:
                 workout_base = wd_name
                 workout_day_index = wd_index
                 break
@@ -312,23 +312,29 @@ def merge_csv_files(file_configs: list[dict], output_path: str):
             continue
         
         # Define cycle parameters
+        # IMPORTANT: end_date represents the LAST workout, so we work backwards from there
+        # For PPL: 8-day cycle: Push A(0), Pull A(1), Legs A(2), Rest(3), Push B(4), Pull B(5), Legs B(6), Rest(7)
+        # For ULPPL: 7-day cycle: Upper(0), Lower(1), Rest(2), Push(3), Pull(4), Legs(5), Rest(6)
         if workout_name == "ULPPL":
-            # ULPPL: 7-day cycle: Upper, Lower, Rest, Push, Pull, Legs, Rest
+            # End date = day 5 (Legs), so index = 5 means end_date itself
             cycle_days = 7
             workout_days = [
-                (0, "Upper"),
-                (1, "Lower"),
-                (3, "Push"),
-                (4, "Pull"),
-                (5, "Legs"),
+                (5 - 0, "Upper"),    # Upper = day 5 (end_date)
+                (5 - 1, "Lower"),    # Lower = day 4
+                (5 - 3, "Push"),     # Push = day 2
+                (5 - 4, "Pull"),     # Pull = day 1
+                (5 - 5, "Legs"),     # Legs = day 0
             ]
         else:
-            # PPL: 8-day cycle: Push, Pull, Legs, Rest, Push, Pull, Legs, Rest
+            # PPL: End date = day 6 (Legs B), so index = 6 means end_date itself
             cycle_days = 8
             workout_days = [
-                (0, "Push"),
-                (1, "Pull"),
-                (2, "Legs"),
+                (6 - 0, "Push A"),   # Push A = day 6 (end_date)
+                (6 - 1, "Pull A"),   # Pull A = day 5
+                (6 - 2, "Legs A"),   # Legs A = day 4
+                (6 - 4, "Push B"),   # Push B = day 2
+                (6 - 5, "Pull B"),   # Pull B = day 1
+                (6 - 6, "Legs B"),   # Legs B = day 0
             ]
         
         workouts = parse_health_tracking_csv(
