@@ -80,6 +80,7 @@ def parse_health_tracking_csv(
         List of workout entries in Strong CSV format
     """
     workouts = []
+    set_order_counter = {}  # Track set order per exercise per date
     
     with open(filepath, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
@@ -179,16 +180,25 @@ def parse_health_tracking_csv(
             
             full_workout_name = f"{workout_name} - {current_day}" if current_day else workout_name
             
+            # Get current set order for this exercise/date combo
+            date_key = workout_date.strftime('%Y-%m-%d')
+            exercise_key = (date_key, full_workout_name, exercise_name)
+            current_set_order = set_order_counter.get(exercise_key, 0)
+            
             for set_num in range(sets):
+                current_set_order += 1
                 workouts.append({
-                    'Date': workout_date.strftime('%Y-%m-%d'),
+                    'Date': date_key,
                     'Workout Name': full_workout_name,
                     'Exercise Name': exercise_name,
+                    'Set Order': current_set_order,
                     'Weight': weight if weight else 0,
                     'Reps': reps,
                     'RPE': '',
                     'Notes': notes if set_num == 0 else ''
                 })
+            
+            set_order_counter[exercise_key] = current_set_order
     
     return workouts
 
@@ -205,6 +215,7 @@ def parse_ppl_csv(
     This format has a complex header structure with Setup week and numbered weeks.
     """
     workouts = []
+    set_order_counter = {}  # Track set order per exercise per date
     
     with open(filepath, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
@@ -305,30 +316,58 @@ def parse_ppl_csv(
             
             full_workout_name = f"PPL - {current_day}" if current_day else "PPL Workout"
             
+            # Get current set order for this exercise/date combo
+            date_key = workout_date.strftime('%Y-%m-%d')
+            exercise_key = (date_key, full_workout_name, exercise_name)
+            current_set_order = set_order_counter.get(exercise_key, 0)
+            
             for set_num in range(sets):
+                current_set_order += 1
                 workouts.append({
-                    'Date': workout_date.strftime('%Y-%m-%d'),
+                    'Date': date_key,
                     'Workout Name': full_workout_name,
                     'Exercise Name': exercise_name,
+                    'Set Order': current_set_order,
                     'Weight': weight if weight else 0,
                     'Reps': reps,
                     'RPE': '',
                     'Notes': notes if set_num == 0 else ''
                 })
+            
+            set_order_counter[exercise_key] = current_set_order
     
     return workouts
 
 
 def write_strong_csv(workouts: list[dict], output_path: str):
-    """Write workouts to Strong CSV format."""
-    fieldnames = ['Date', 'Workout Name', 'Exercise Name', 'Weight', 'Reps', 'RPE', 'Notes']
+    """Write workouts to Strong CSV format (semicolon-delimited)."""
+    # Strong CSV format uses semicolons and includes these columns:
+    # Date;Workout Name;Exercise Name;Set Order;Weight;Weight Unit;Reps;RPE;Distance;Distance Unit;Seconds;Notes;Workout Notes;Workout Duration
+    fieldnames = ['Date', 'Workout Name', 'Exercise Name', 'Set Order', 'Weight', 'Weight Unit', 'Reps', 'RPE', 'Distance', 'Distance Unit', 'Seconds', 'Notes', 'Workout Notes', 'Workout Duration']
     
-    workouts_sorted = sorted(workouts, key=lambda x: (x['Date'], x['Workout Name'], x['Exercise Name']))
+    workouts_sorted = sorted(workouts, key=lambda x: (x['Date'], x['Workout Name'], x['Exercise Name'], x.get('Set Order', 1)))
     
     with open(output_path, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=';')
         writer.writeheader()
-        writer.writerows(workouts_sorted)
+        for workout in workouts_sorted:
+            row = {
+                'Date': workout['Date'],
+                'Workout Name': workout['Workout Name'],
+                'Exercise Name': workout['Exercise Name'],
+                'Set Order': workout.get('Set Order', 1),
+                'Weight': workout.get('Weight', ''),
+                'Weight Unit': 'lbs',
+                'Reps': workout.get('Reps', ''),
+                'RPE': workout.get('RPE', ''),
+                'Distance': '',
+                'Distance Unit': '',
+                'Seconds': '',
+                'Notes': workout.get('Notes', ''),
+                'Workout Notes': '',
+                'Workout Duration': ''
+            }
+            writer.writerow(row)
 
 
 def merge_csv_files(file_configs: list[dict], output_path: str):

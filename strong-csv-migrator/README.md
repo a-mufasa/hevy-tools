@@ -4,26 +4,33 @@ Converts workout tracking spreadsheets to Strong CSV format for import into Hevy
 
 ## What is the Strong CSV Format?
 
-The Strong app (and Hevy when importing from Strong) uses a specific CSV format with the following columns:
+The Strong app (and Hevy when importing from Strong) uses a specific CSV format with semicolon delimiters:
 
 | Column | Required | Description |
 |--------|----------|-------------|
 | Date | Yes | Workout date in YYYY-MM-DD format |
 | Workout Name | Yes | Name of the workout routine |
 | Exercise Name | Yes | Name of the exercise performed |
+| Set Order | Yes | Order of the set within the exercise |
 | Weight | Yes | Weight lifted (lbs or kg) |
+| Weight Unit | Yes | Unit of weight (lbs or kg) |
 | Reps | Yes | Number of repetitions |
 | RPE | No | Rate of Perceived Exertion (1-10) |
+| Distance | No | Distance (for cardio) |
+| Distance Unit | No | Unit for distance |
+| Seconds | No | Duration in seconds |
 | Notes | No | Exercise notes |
+| Workout Notes | No | Workout-level notes |
+| Workout Duration | No | Total workout duration |
 
 ### Example
 
 ```csv
-Date,Workout Name,Exercise Name,Weight,Reps,RPE,Notes
-2024-08-05,PPL - Day 1 (Legs A),Leg Press,265,8,,
-2024-08-05,PPL - Day 1 (Legs A),Leg Press,265,9,,
-2024-08-05,PPL - Day 1 (Legs A),Seated Leg Curl,195,8,,
-2024-08-12,PPL - Day 1 (Legs A),Leg Press,275,8,,
+Date;Workout Name;Exercise Name;Set Order;Weight;Weight Unit;Reps;RPE;Distance;Distance Unit;Seconds;Notes;Workout Notes;Workout Duration
+2024-08-05;PPL - Day 1 (Legs A);Leg Press;1;265;lbs;8;;;;;;;
+2024-08-05;PPL - Day 1 (Legs A);Leg Press;2;265;lbs;9;;;;;;;
+2024-08-05;PPL - Day 1 (Legs A);Seated Leg Curl;1;195;lbs;8;;;;;;;
+2024-08-12;PPL - Day 1 (Legs A);Leg Press;1;275;lbs;8;;;;;;;
 ...
 ```
 
